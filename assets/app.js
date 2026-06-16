@@ -3,57 +3,17 @@ const SOUND_SETS = {
     label: "Basic sound set",
     description: "Short, neutral tones with very little product personality.",
     theme: "basic",
-    sounds: {
-      digit: [{ frequency: 560, duration: 0.09, type: "sine", gain: 0.18 }],
-      enter: [{ frequency: 720, duration: 0.16, type: "sine", gain: 0.2 }],
-      cancel: [{ frequency: 220, duration: 0.14, type: "square", gain: 0.12 }],
-      start: [{ frequency: 640, duration: 0.13, type: "triangle", gain: 0.16 }],
-      mist: [{ frequency: 840, duration: 0.1, type: "sine", gain: 0.13 }],
-      scan: [{ frequency: 440, duration: 0.12, type: "sine", gain: 0.15 }],
-      dock: [{ frequency: 300, duration: 0.15, type: "triangle", gain: 0.16 }]
-    }
+    folder: "basic"
   },
   functional: {
     label: "Functional sound set",
     description: "Layered cues that imply lift, water, confirmation, and recovery.",
     theme: "functional",
-    sounds: {
-      digit: [
-        { frequency: 510, duration: 0.045, type: "triangle", gain: 0.12 },
-        { frequency: 770, duration: 0.08, type: "sine", gain: 0.08, delay: 0.035 }
-      ],
-      enter: [
-        { frequency: 520, duration: 0.08, type: "triangle", gain: 0.14 },
-        { frequency: 780, duration: 0.12, type: "sine", gain: 0.12, delay: 0.055 },
-        { frequency: 1040, duration: 0.16, type: "sine", gain: 0.09, delay: 0.11 }
-      ],
-      cancel: [
-        { frequency: 420, duration: 0.08, type: "triangle", gain: 0.13 },
-        { frequency: 260, duration: 0.14, type: "sine", gain: 0.12, delay: 0.06 }
-      ],
-      start: [
-        { frequency: 180, duration: 0.18, type: "sawtooth", gain: 0.08 },
-        { frequency: 620, duration: 0.18, type: "triangle", gain: 0.12, delay: 0.09 },
-        { frequency: 930, duration: 0.2, type: "sine", gain: 0.08, delay: 0.18 }
-      ],
-      mist: [
-        { frequency: 1100, duration: 0.07, type: "sine", gain: 0.09 },
-        { frequency: 1320, duration: 0.08, type: "sine", gain: 0.07, delay: 0.045 },
-        { frequency: 1580, duration: 0.11, type: "sine", gain: 0.05, delay: 0.09 }
-      ],
-      scan: [
-        { frequency: 360, duration: 0.08, type: "triangle", gain: 0.1 },
-        { frequency: 540, duration: 0.08, type: "triangle", gain: 0.09, delay: 0.07 },
-        { frequency: 720, duration: 0.08, type: "triangle", gain: 0.08, delay: 0.14 }
-      ],
-      dock: [
-        { frequency: 620, duration: 0.08, type: "triangle", gain: 0.1 },
-        { frequency: 420, duration: 0.11, type: "sine", gain: 0.11, delay: 0.07 },
-        { frequency: 260, duration: 0.16, type: "sine", gain: 0.1, delay: 0.15 }
-      ]
-    }
+    folder: "functional"
   }
 };
+
+const CUES = ["digit", "enter", "cancel", "start", "mist", "scan", "dock"];
 
 const KEYPAD = [
   ["1", "2", "3"],
@@ -69,45 +29,37 @@ const ACTIONS = [
   { label: "Dock", key: "dock" }
 ];
 
-let audioContext;
+const audioCache = new Map();
 
 function getSet() {
   const setName = document.body.dataset.soundSet || "basic";
   return SOUND_SETS[setName] || SOUND_SETS.basic;
 }
 
-function ensureAudio() {
-  const AudioEngine = window.AudioContext || window.webkitAudioContext;
-  audioContext ||= new AudioEngine();
-  if (audioContext.state === "suspended") {
-    audioContext.resume();
-  }
-  return audioContext;
+function cuePath(cueName) {
+  const soundSet = getSet();
+  const safeCue = CUES.includes(cueName) ? cueName : "digit";
+  return `../sounds/${soundSet.folder}/${safeCue}.wav`;
+}
+
+function preloadSounds() {
+  const soundSet = getSet();
+  CUES.forEach((cue) => {
+    const key = `${soundSet.folder}:${cue}`;
+    if (audioCache.has(key)) return;
+
+    const audio = new Audio(cuePath(cue));
+    audio.preload = "auto";
+    audioCache.set(key, audio);
+  });
 }
 
 function playCue(cueName) {
-  const context = ensureAudio();
   const soundSet = getSet();
-  const notes = soundSet.sounds[cueName] || soundSet.sounds.digit;
-  const now = context.currentTime;
-
-  notes.forEach((note) => {
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-    const start = now + (note.delay || 0);
-    const end = start + note.duration;
-
-    oscillator.type = note.type;
-    oscillator.frequency.setValueAtTime(note.frequency, start);
-    gain.gain.setValueAtTime(0.0001, start);
-    gain.gain.exponentialRampToValueAtTime(note.gain, start + 0.012);
-    gain.gain.exponentialRampToValueAtTime(0.0001, end);
-
-    oscillator.connect(gain);
-    gain.connect(context.destination);
-    oscillator.start(start);
-    oscillator.stop(end + 0.03);
-  });
+  const safeCue = CUES.includes(cueName) ? cueName : "digit";
+  const cachedAudio = audioCache.get(`${soundSet.folder}:${safeCue}`);
+  const audio = cachedAudio ? cachedAudio.cloneNode(true) : new Audio(cuePath(safeCue));
+  audio.play().catch(() => {});
 }
 
 function handleKey(label) {
@@ -127,6 +79,7 @@ function handleKey(label) {
 function render() {
   const soundSet = getSet();
   const app = document.querySelector("#app");
+  preloadSounds();
 
   app.innerHTML = `
     <section class="demo-shell ${soundSet.theme}">

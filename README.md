@@ -28,4 +28,6 @@ Use those public URLs when generating QR codes for the slideshow after Pages fin
 
 ## Sound Sets
 
-The generated Web Audio cues live in `assets/app.js` under `SOUND_SETS`.
+The app plays WAV files from `sounds/basic/` and `sounds/functional/`.
+
+Both folders use the same cue filenames so the basic and functional sets stay mirrored. Replace a WAV with the same filename to swap in a custom sound without changing the UI.
