@@ -15,16 +15,18 @@ Then open:
 - `http://127.0.0.1:4173/basic/`
 - `http://127.0.0.1:4173/functional/`
 
-## GitHub Pages
+## Live Demo
 
-Publish from the repository root on the `main` branch.
+The public GitHub Pages site is:
 
-The public demo URLs will be:
+- `https://starlingsound.github.io/PetalPal/`
 
-- `https://YOUR-USERNAME.github.io/YOUR-REPO/basic/`
-- `https://YOUR-USERNAME.github.io/YOUR-REPO/functional/`
+The two sound-set pages are:
 
-Use those public URLs when generating QR codes for the slideshow after Pages finishes publishing.
+- `https://starlingsound.github.io/PetalPal/basic/`
+- `https://starlingsound.github.io/PetalPal/functional/`
+
+The QR code PNGs in `qr-codes/` point to those two sound-set pages.
 
 ## Sound Sets
 
