@@ -24,7 +24,7 @@ The public demo URLs will be:
 - `https://YOUR-USERNAME.github.io/YOUR-REPO/basic/`
 - `https://YOUR-USERNAME.github.io/YOUR-REPO/functional/`
 
-Use those public URLs when generating QR codes for the slideshow.
+Use those public URLs when generating QR codes for the slideshow after Pages finishes publishing.
 
 ## Sound Sets
 
